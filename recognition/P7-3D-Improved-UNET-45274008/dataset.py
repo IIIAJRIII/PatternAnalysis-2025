@@ -1,111 +1,46 @@
+import torch
+from torch.utils.data import Dataset
 import numpy as np
 import nibabel as nib
-from tqdm import tqdm
 
-
-def to_channels(arr: np.ndarray, dtype=np.uint8) -> np.ndarray:
+class ProstateDataset(Dataset):
     """
-    Convert a label array to one-hot channels along a new last axis.
+    Custom PyTorch Dataset for loading 3D NIfTI files.
     """
-    channels = np.unique(arr)
-    res = np.zeros(arr.shape + (len(channels),), dtype=dtype)
-    for c in channels:
-        c = int(c)
-        res[..., c][arr == c] = 1
-    return res
+    def __init__(self, image_files, mask_files, transform=None):
+        self.image_files = image_files
+        self.mask_files = mask_files
+        self.transform = transform # For data augmentation
 
+    def __len__(self):
+        return len(self.image_files)
 
-def load_data_3D(
-    imageNames,
-    normImage=False,
-    categorical=False,
-    dtype=np.float32,
-    getAffines=False,
-    orient=False,
-    early_stop=False,
-):
-    """
-    Load medical image data from names (cases list provided) into a single array.
+    def __getitem__(self, idx):
+        # Load NIfTI files
+        img = nib.load(self.image_files[idx]).get_fdata(dtype=np.float32)
+        mask = nib.load(self.mask_files[idx]).get_fdata().astype(np.uint8)
 
-    This function pre-allocates 5D arrays for conv3d to avoid excessive memory usage.
+        # Basic Pre-processing
+        # 1. Normalize image (simple min-max to [0, 1])
+        if img.max() > img.min():
+            img = (img - img.min()) / (img.max() - img.min())
+        
+        # 2. Add channel dimension: (H, W, D) -> (1, H, W, D)
+        # Note: nibabel loads as (W, H, D) or (X, Y, Z)
+        img = np.expand_dims(img, axis=0) 
+        
+        # 3. Permute to PyTorch's (C, D, H, W) format
+        img = img.transpose(0, 3, 2, 1)
+        
+        # 4. Permute mask (W, H, D) -> (D, H, W)
+        mask = mask.transpose(2, 1, 0)
 
-    Args:
-        imageNames: list of file paths to nifti images.
-        normImage: bool, normalise the image to zero-mean unit-variance.
-        categorical: bool, convert labels to one-hot channels.
-        dtype: numpy dtype for output arrays. If dtype == np.uint8, assumes labels.
-        getAffines: bool, return affines along with images.
-        orient: bool, apply orientation/resampling (external `im.applyOrientation` expected).
-        early_stop: bool, stop after ~20 cases for quick testing.
+        # Convert to tensors
+        img_tensor = torch.from_numpy(img.copy()).float()
+        mask_tensor = torch.from_numpy(mask.copy()).long()
+        
+        # Apply transforms (augmentation) if any
+        if self.transform:
+            pass
 
-    Returns:
-        images (and optionally affines if getAffines is True).
-    """
-    affines = []
-
-    interp = "linear"
-    if dtype == np.uint8:  # assume labels
-        interp = "nearest"
-
-    # get fixed size from first image
-    num = len(imageNames)
-    niftiImage = nib.load(imageNames[0])
-    if orient:
-        # expects an external module `im` with applyOrientation
-        niftiImage = im.applyOrientation(niftiImage, interpolation=interp, scale=1)
-
-    first_case = niftiImage.get_fdata(caching="unchanged")
-    if len(first_case.shape) == 4:
-        first_case = first_case[:, :, :, 0]  # sometimes extra dim, remove
-
-    if categorical:
-        first_case = to_channels(first_case, dtype=dtype)
-        rows, cols, depth, channels = first_case.shape
-        images = np.zeros((num, rows, cols, depth, channels), dtype=dtype)
-    else:
-        rows, cols, depth = first_case.shape
-        images = np.zeros((num, rows, cols, depth), dtype=dtype)
-
-    for i, inName in enumerate(tqdm(imageNames)):
-        niftiImage = nib.load(inName)
-        if orient:
-            niftiImage = im.applyOrientation(niftiImage, interpolation=interp, scale=1)
-
-        inImage = niftiImage.get_fdata(caching="unchanged")
-        affine = niftiImage.affine
-
-        if len(inImage.shape) == 4:
-            inImage = inImage[:, :, :, 0]  # sometimes extra dims
-
-        # clip slices to expected depth
-        inImage = inImage[:, :, :depth]
-        inImage = inImage.astype(dtype)
-
-        if normImage:
-            inImage = (inImage - inImage.mean()) / inImage.std()
-
-        if categorical:
-            inImage = to_channels(inImage, dtype=dtype)
-            images[
-                i,
-                : inImage.shape[0],
-                : inImage.shape[1],
-                : inImage.shape[2],
-                : inImage.shape[3],
-            ] = inImage  # with pad
-        else:
-            images[
-                i,
-                : inImage.shape[0],
-                : inImage.shape[1],
-                : inImage.shape[2],
-            ] = inImage  # with pad
-
-        affines.append(affine)
-
-        if i > 20 and early_stop:
-            break
-
-    if getAffines:
-        return images, affines
-    return images
+        return img_tensor, mask_tensor
