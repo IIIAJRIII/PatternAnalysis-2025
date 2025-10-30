@@ -1,10 +1,10 @@
-3D Prostate Segmentation using UNet Architectures
+# 3D Prostate Segmentation using UNet Architectures
 
-Problem: Task 7 - Segmenting Prostate 3D data set.
+## Problem: Task 7 - Segmenting Prostate 3D data set.
 
-Author: Alan Ravikumar - 45274008
+## Author: Alan Ravikumar - 45274008
 
-1. Overview: Problem and Algorithm
+### 1. Overview: Problem and Algorithm
 
 The Problem
 
