@@ -9,14 +9,14 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
 # Import model from modules.py
-from modules import UNet3D
+from modules import UNet3D, ImprovedUNet3D
 # Import dataset from dataset.py
 from dataset import ProstateDataset
 
 # --- Hyperparameters ---
 LEARNING_RATE = 1e-4
-BATCH_SIZE = 1 # Keeping at 1, this is critical
-N_EPOCHS = 100
+BATCH_SIZE = 1 # Keeping at 1 due to memory constraints
+N_EPOCHS = 50
 TEST_SPLIT = 0.2 # Defining test split size
 RANDOM_SEED = 42 # Defining random seed for reproducibility
 # -------------------------
@@ -28,7 +28,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(SCRIPT_DIR, "images")
 
 # --- Model & Checkpoint Paths ---
-MODEL_SAVE_PATH = "3d_unet_prostate_slim.pth" # Renamed model to "slim"
+MODEL_SAVE_PATH = "improved_3d_unet_prostate_slim.pth" # Renamed model to "slim"
 
 # --- Model Configuration ---
 N_CLASSES = 6 
@@ -163,7 +163,7 @@ def main():
     print(f"Data loaded: {len(train_dataset)} training, {len(val_dataset)} validation.")
     
     # Initialize Model, Loss, and Optimizer
-    model = UNet3D(n_channels=N_CHANNELS, n_classes=N_CLASSES, base_features=BASE_FEATURES).to(device)
+    model = ImprovedUNet3D(n_channels=N_CHANNELS, n_classes=N_CLASSES, base_features=BASE_FEATURES).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
