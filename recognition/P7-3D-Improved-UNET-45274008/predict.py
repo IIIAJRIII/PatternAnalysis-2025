@@ -55,6 +55,10 @@ def dice_metric(preds_logits, targets, n_classes, smooth=1e-6):
     """
     Calculates Dice score for multi-class segmentation.
     Ignores background (class 0).
+    
+    Returns:
+        mean_dice (float): The average dice score across foreground classes.
+        class_dice (np.array): An array of dice scores for each foreground class.
     """
     # Get predictions by taking argmax
     preds = torch.argmax(preds_logits, dim=1)
@@ -72,10 +76,12 @@ def dice_metric(preds_logits, targets, n_classes, smooth=1e-6):
         dice = (2. * intersection + smooth) / (union + smooth)
         dice_scores.append(dice.item())
         
-    # Return the average Dice score across all foreground classes
+    # Return the average Dice score and the per-class scores
     if len(dice_scores) == 0:
-        return 0.0
-    return np.mean(dice_scores)
+        return 0.0, np.zeros(n_classes - 1)
+        
+    class_dice_np = np.array(dice_scores)
+    return np.mean(class_dice_np), class_dice_np
 
 def visualize_first_sample(model, val_loader, val_imgs, val_masks):
     """
@@ -201,6 +207,8 @@ def evaluate_validation_set():
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
     total_dice = 0.0
+    # Create an accumulator for per-class dice scores
+    total_class_dice = np.zeros(N_CLASSES - 1) # e.g., 5 foreground classes
     num_samples = 0
 
     # 3. Run prediction on the entire validation set
@@ -213,17 +221,24 @@ def evaluate_validation_set():
             output_logits = model(images)
             
             # Calculate Dice score for this batch
-            batch_dice = dice_metric(output_logits, masks, N_CLASSES)
+            batch_mean_dice, batch_class_dice = dice_metric(output_logits, masks, N_CLASSES)
             
-            total_dice += batch_dice
+            total_dice += batch_mean_dice
+            total_class_dice += batch_class_dice # Add the array of class scores
             num_samples += 1
             
     # 4. Calculate and print the final average Dice score
     average_dice = total_dice / num_samples
+    average_class_dice = total_class_dice / num_samples
     
     print("\n--- Validation Complete ---")
     print(f"Total validation samples: {num_samples}")
-    print(f"Average Dice Score (foreground classes): {average_dice:.4f}")
+    print(f"Average Dice Score (all foreground classes): {average_dice:.4f}")
+    
+    # Print the detailed per-class breakdown
+    print("\n--- Dice Score by Class (Foreground) ---")
+    for i, dice_val in enumerate(average_class_dice):
+        print(f"  Class {i + 1}: {dice_val:.4f}")
     
     # if average_dice >= 0.7:
     #     print("\nCongratulations! You have met the 0.7 Dice score target.")
