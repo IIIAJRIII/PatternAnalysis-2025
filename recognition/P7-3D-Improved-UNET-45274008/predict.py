@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 # Import your model and dataset classes
-from modules import UNet3D
+from modules import UNet3D, ImprovedUNet3D
 from dataset import ProstateDataset
 
 # --- Configuration ---
@@ -25,7 +25,7 @@ BATCH_SIZE = 1 # Use batch size of 1 for validation to avoid OOM
 # Get the absolute path to the directory containing this script
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(SCRIPT_DIR, "images")
-MODEL_SAVE_PATH = "3d_unet_prostate_slim.pth" # Path to your trained model
+MODEL_SAVE_PATH = "improved_3d_unet_prostate_slim.pth" # Path to your trained model
 
 # Set device
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
@@ -185,7 +185,7 @@ def evaluate_validation_set():
 
     # 1. Load the trained model
     print(f"Loading model from {MODEL_SAVE_PATH}")
-    model = UNet3D(n_channels=N_CHANNELS, n_classes=N_CLASSES, base_features=BASE_FEATURES)
+    model = ImprovedUNet3D(n_channels=N_CHANNELS, n_classes=N_CLASSES, base_features=BASE_FEATURES)
     
     try:
         model.load_state_dict(torch.load(MODEL_SAVE_PATH, map_location=DEVICE))
