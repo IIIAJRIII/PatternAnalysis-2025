@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import argparse
 
 # Import your model and dataset classes
 from modules import UNet3D, ImprovedUNet3D
@@ -182,10 +183,25 @@ def evaluate_validation_set():
     if not val_imgs:
         print("Could not load validation data.")
         return
+    
+    parser = argparse.ArgumentParser(description="Train 3D UNet on Prostate Dataset")
+    parser.add_argument("-m", "--model", type=str, choices=["unet", "improved_unet"], default="improved_unet",
+                        help="Choose the model to train: 'unet' or 'improved_unet'")
+    args = parser.parse_args()
+    model_choice = args.model
+    if model_choice == "unet":
+        print("Selected model: Standard 3D UNet")
+        ModelClass = UNet3D
+        MODEL_SAVE_PATH = "3d_unet_prostate_slim.pth"
+    else:
+        print("Selected model: Improved 3D UNet")
+        ModelClass = ImprovedUNet3D
+        MODEL_SAVE_PATH = "improved_3d_unet_prostate_slim.pth"
+    
 
     # 1. Load the trained model
     print(f"Loading model from {MODEL_SAVE_PATH}")
-    model = ImprovedUNet3D(n_channels=N_CHANNELS, n_classes=N_CLASSES, base_features=BASE_FEATURES)
+    model = ModelClass(n_channels=N_CHANNELS, n_classes=N_CLASSES, base_features=BASE_FEATURES)
     
     try:
         model.load_state_dict(torch.load(MODEL_SAVE_PATH, map_location=DEVICE))
@@ -240,12 +256,6 @@ def evaluate_validation_set():
     for i, dice_val in enumerate(average_class_dice):
         print(f"  Class {i + 1}: {dice_val:.4f}")
     
-    # if average_dice >= 0.7:
-    #     print("\nCongratulations! You have met the 0.7 Dice score target.")
-    # else:
-    #     print(f"\nTarget not met. Average Dice: {average_dice:.4f}. Target: 0.7")
-    #     print("You may need to train for more epochs, add data augmentation, or try the 'Improved UNet'.")
-
     # 5. Now, run the visualization
     # We pass the model and loader so we don't have to re-create them
     visualize_first_sample(model, val_loader, val_imgs, val_masks)

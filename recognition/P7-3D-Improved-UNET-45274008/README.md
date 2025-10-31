@@ -31,6 +31,15 @@ This project was constructed with the following key dependencies:
 * **matplotlib**: For plotting training history and visualizing 2D/3D image slices.
 * **scikit-learn**: For data splitting (`train_test_split`) and performance metrics.
 * **tqdm**: To display progress bars during training and evaluation.
+* **argparse**: For model selection via command line for training.
+
+#### 2.1 Installation
+
+The main dependencies can be installed via `pip`. It is **highly recommended** to install PyTorch from the [official website](https://pytorch.org/get-started/locally/) first to ensure you get the correct version with GPU (CUDA) support for your system.
+
+```bash
+pip install numpy nibabel matplotlib scikit-learn tqdm
+```
 
 ### 3. Project Structure
 
@@ -40,6 +49,37 @@ The project consists of the following files:
 * `dataset.py`: Contains the `ProstateDataset` class, a custom PyTorch `Dataset` that loads, pre-processes, and serves 3D NIfTI files for the `DataLoader`.
 * `train.py`: The main training script. It handles data splitting, model initialization (Standard or Improved), the training/validation loop, and saving the best-performing model based on validation Dice score.
 * `predict.py`: The evaluation and visualization script. It loads a trained model, runs it on the entire validation set to calculate the final average and per-class Dice scores, and then provides a 3D slice-by-slice visualization of a sample prediction.
+
+#### 3.1 Running code
+
+You can run the project using the main scripts. Ensure your `images` folder (containing `semantic_MRs_anon` and `semantic_labels_anon`) is in the same directory.
+
+**2. Train a model:**
+Run `train.py` to start training. You can use the `-m` argument to choose between the standard 'unet' and the 'improved' unet.
+
+```
+# Train the "Hard Difficulty" Improved UNet (default)
+python train.py -m improved_unet
+
+# Train the "Normal Difficulty" Standard UNet
+python train.py -m unet
+
+```
+
+This will save the best model (e.g., `3d_unet_prostate_slim_improved.pth`) in the root directory.
+
+**3. Evaluate and Predict:**
+Run `predict.py` to see the results. Make sure the `MODEL_SAVE_PATH` variable in the script matches the model you trained. Use the `-m` argument to choose between the standard 'unet' and the 'improved' unet.
+
+```
+# Test the "Hard Difficulty" Improved UNet (default)
+python predict.py -m improved_unet
+
+# Test the "Normal Difficulty" Standard UNet
+python predict.py -m unet
+```
+
+This will print the final Dice scores and launch the 3D visualization.
 
 ### 4. Model and Data
 

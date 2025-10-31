@@ -39,7 +39,7 @@ class ProstateDataset(Dataset):
         img_tensor = torch.from_numpy(img.copy()).float()
         mask_tensor = torch.from_numpy(mask.copy()).long()
         
-        # Apply transforms (augmentation) if any
+        # Apply transforms if any
         if self.transform:
             pass
 
