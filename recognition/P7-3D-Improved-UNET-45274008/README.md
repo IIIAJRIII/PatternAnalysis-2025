@@ -35,6 +35,22 @@ The project consists of the following files:
 
 ### 4. Model and Data
 
+#### 4.1 Model Architectures
+
+UNet is a type of convolutional model that is used for image segementation mainly used in the medical field to seperate problems, such as tumours, from healthy parts of the body [2]. The model gets its name from the fact its architecture is in a U-shape.
+
+![UNet Archticture](readme_assets/unet-arch.png)
+
+The architecture has encoder on path and a decoder path. The encoder path follows a typical convolutional network, it consists of applying two 3x3 unpadded convolution followed by a ReLU and 2x2 max pooling of stride 2 for downsampling. In the decoder path, it consists of a 2x2 up-convolution concatenated with the corresponding feature map from the encoder path. It is then followed by two 3x3 convolutions and a ReLU. In the final layer a 1x1 convolution is used to map the deature vector into the desired number of classes. [1]
+
+| Feature | Standard 3D UNet (Baseline) | Improved 3D UNet (Implementation) |
+| :--- | :--- | :--- |
+| **Conv Block** | **`DoubleConv`** | **`ImprovedConvBlock` (Residual)** |
+| **Logic** | `(Conv -> BN -> ReLU) * 2` | `((Conv->IN->LReLU) * 2) + Shortcut` |
+| **Normalization** | `BatchNorm3d` | `InstanceNorm3d` |
+| **Activation** | `ReLU` | `LeakyReLU` |
+| **Key Benefit** | Simple and foundational. | **Residual connections** improve gradient flow. **Instance Norm** is crucial, as it works perfectly with the required `BATCH_SIZE=1` (unlike Batch Norm). **Leaky ReLU** prevents "dying" neurons. |
+
 ### 5. Implementation
 
 ### 6. Results
@@ -42,3 +58,7 @@ The project consists of the following files:
 ### 7. Future Work
 
 ### 8. References
+
+Ronneberger, O., Fischer, P., & Brox, T. (2015, October). U-net: Convolutional networks for biomedical image segmentation. In International Conference on Medical image computing and computer-assisted intervention (pp. 234-241). Cham: Springer international publishing. [1]
+
+GeeksforGeeks. (2025, October 9). U-Net architecture explained. GeeksforGeeks. https://www.geeksforgeeks.org/machine-learning/u-net-architecture-explained/. [2]
