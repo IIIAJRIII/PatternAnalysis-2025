@@ -7,6 +7,7 @@ import glob
 import os
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
+import argparse
 
 # Import model from modules.py
 from modules import UNet3D, ImprovedUNet3D
@@ -26,9 +27,6 @@ RANDOM_SEED = 42 # Defining random seed for reproducibility
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # DATA_PATH is the 'images' folder inside the script's directory
 DATA_PATH = os.path.join(SCRIPT_DIR, "images")
-
-# --- Model & Checkpoint Paths ---
-MODEL_SAVE_PATH = "improved_3d_unet_prostate_slim.pth" # Renamed model to "slim"
 
 # --- Model Configuration ---
 N_CLASSES = 6 
@@ -116,6 +114,19 @@ def validate(model, loader, criterion, device, n_classes):
 # -----------------------------
 
 def main():
+    parser = argparse.ArgumentParser(description="Train 3D UNet on Prostate Dataset")
+    parser.add_argument("-m", "--model", type=str, choices=["unet", "improved_unet"], default="improved_unet",
+                        help="Choose the model to train: 'unet' or 'improved_unet'")
+    args = parser.parse_args()
+    model_choice = args.model
+    if model_choice == "unet":
+        print("Selected model: Standard 3D UNet")
+        ModelClass = UNet3D
+        MODEL_SAVE_PATH = "3d_unet_prostate_slim.pth"
+    else:
+        print("Selected model: Improved 3D UNet")
+        ModelClass = ImprovedUNet3D
+        MODEL_SAVE_PATH = "improved_3d_unet_prostate_slim.pth"
     print("Starting 3D UNet Training...")
     
     # Set up device
@@ -163,7 +174,7 @@ def main():
     print(f"Data loaded: {len(train_dataset)} training, {len(val_dataset)} validation.")
     
     # Initialize Model, Loss, and Optimizer
-    model = ImprovedUNet3D(n_channels=N_CHANNELS, n_classes=N_CLASSES, base_features=BASE_FEATURES).to(device)
+    model = ModelClass(n_channels=N_CHANNELS, n_classes=N_CLASSES, base_features=BASE_FEATURES).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
