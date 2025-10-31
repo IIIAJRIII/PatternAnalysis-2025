@@ -39,17 +39,21 @@ The project consists of the following files:
 
 UNet is a type of convolutional model that is used for image segementation mainly used in the medical field to seperate problems, such as tumours, from healthy parts of the body [2]. The model gets its name from the fact its architecture is in a U-shape.
 
-![UNet Archticture](readme_assets/unet-arch.png)
+![UNet Architecture](readme_assets/unet-arch.png)
 
-The architecture has encoder on path and a decoder path. The encoder path follows a typical convolutional network, it consists of applying two 3x3 unpadded convolution followed by a ReLU and 2x2 max pooling of stride 2 for downsampling. In the decoder path, it consists of a 2x2 up-convolution concatenated with the corresponding feature map from the encoder path. It is then followed by two 3x3 convolutions and a ReLU. In the final layer a 1x1 convolution is used to map the deature vector into the desired number of classes. [1]
+The architecture has encoder on path and a decoder path. The encoder path follows a typical convolutional network, it consists of applying two 3x3 unpadded convolution followed by a `ReLU` and 2x2 max pooling of stride 2 for downsampling. In the decoder path, it consists of a 2x2 up-convolution concatenated with the corresponding feature map from the encoder path. It is then followed by two 3x3 convolutions and a `ReLU`. In the final layer a 1x1 convolution is used to map the deature vector into the desired number of classes. [1]
+
+![Improved UNet Architecture](readme_assets/improved-unet-arch.PNG)
+
+Improved 3D UNet builds on this foundation. This implementation [3] integrates key architectural upgrades to improve training stability and performance. The standard convolutional blocks are replaced with **pre-activation residual blocks** to improve gradient flow. Furthermore, it substitutes `BatchNorm3d` with **`InstanceNorm3d`**, and replaces all `ReLU` activations with **`LeakyReLU`** to prevent the "dying ReLU" problem. The "pre-activation" residual block changes the order of operations within the block to improve the flow of gradients, which makes training deep networks much easier and more stable. It performs the **`InstanceNorm3d`** and **`LeakyReLU`** before convolution.
 
 | Feature | Standard 3D UNet (Baseline) | Improved 3D UNet (Implementation) |
 | :--- | :--- | :--- |
 | **Conv Block** | **`DoubleConv`** | **`ImprovedConvBlock` (Residual)** |
-| **Logic** | `(Conv -> BN -> ReLU) * 2` | `((Conv->IN->LReLU) * 2) + Shortcut` |
+| **Logic** | `(Conv -> BN -> ReLU) * 2` | `((IN -> LReLU -> Conv) * 2) + Shortcut` |
 | **Normalization** | `BatchNorm3d` | `InstanceNorm3d` |
 | **Activation** | `ReLU` | `LeakyReLU` |
-| **Key Benefit** | Simple and foundational. | **Residual connections** improve gradient flow. **Instance Norm** is crucial, as it works perfectly with the required `BATCH_SIZE=1` (unlike Batch Norm). **Leaky ReLU** prevents "dying" neurons. |
+| **Key Benefit** | Simple and foundational. | **Residual connections** improve gradient flow. **Instance Norm** is crucial. **Leaky ReLU** prevents "dying" neurons. |
 
 ### 5. Implementation
 
@@ -62,3 +66,5 @@ The architecture has encoder on path and a decoder path. The encoder path follow
 Ronneberger, O., Fischer, P., & Brox, T. (2015, October). U-net: Convolutional networks for biomedical image segmentation. In International Conference on Medical image computing and computer-assisted intervention (pp. 234-241). Cham: Springer international publishing. [1]
 
 GeeksforGeeks. (2025, October 9). U-Net architecture explained. GeeksforGeeks. https://www.geeksforgeeks.org/machine-learning/u-net-architecture-explained/. [2]
+
+Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., & Maier-Hein, K. H. (2017, September). Brain tumor segmentation and radiomics survival prediction: Contribution to the brats 2017 challenge. In International MICCAI Brainlesion Workshop (pp. 287-297). Cham: Springer International Publishing. [3]
