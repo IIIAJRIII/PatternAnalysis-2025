@@ -63,6 +63,9 @@ Improved 3D UNet builds on this foundation. This implementation [3] integrates k
 | **Activation** | `ReLU` | `LeakyReLU` |
 | **Key Benefit** | Simple and foundational. | **Residual connections** improve gradient flow. **Instance Norm** is crucial. **Leaky ReLU** prevents "dying" neurons. |
 
+#### 4.2 The Dataset
+The dataset being used is the (downsampled) Prostate 3D dataset provided for the project, consisting of 211 3D NIfTI volumes. Each volume includes a semantic_MRs_anon (MRI scan) and a corresponding semantic_labels_anon (6-class segmentation mask). This has real world application and possibility to help doctors and medical professionals help diagnose and treat cancer and diseases.
+
 ### 5. Implementation
 
 **DISCLAMIER:** These models were run on a GTX1080 8Gb, because of the limited memory the models and training were limited. To maximise performance on your setup, for more modern and powerful GPUs, adjust **`BATCH_SIZE`** and **`BASE_FEATURES`** in train.py accordingly.
@@ -134,6 +137,10 @@ For future work some topic and changes that can be explored are:
 * **Dice Loss:** The model currently trains with `CrossEntropyLoss`. Adding a `DiceLoss` (or a combined `Dice + CE` loss) could directly optimize the metric that the model is being evaluated on, potentially improving results.
 
 * **Hyperparameter Tuning:** Further tuning of learning rate, optimizer, and `BASE_FEATURES`, especially, could yield performance gains.
+
+* **Increased Dataset Size:** Training and testing on a larger dataset could increase performance even further.
+
+* **Training for Brain Tumors or other diseases:** Testing to see how well the model performs for other types of diseases. 
 
 
 ### 8. References
