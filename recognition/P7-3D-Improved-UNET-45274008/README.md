@@ -57,6 +57,37 @@ Improved 3D UNet builds on this foundation. This implementation [3] integrates k
 
 ### 5. Implementation
 
+**DISCLAMIER:** These models were run on a GTX1080 8Gb, because of the limited memory the models and training were limited. To maximise performance on your setup adjust **`BATCH_SIZE`** and **`BASE_FEATURES`** in train.py accordingly.
+
+#### 5.1 Modules and Training
+Several key implementation details were critical to solving the task, particularly given the memory constraints of 3D data.
+
+* **Memory Management:** Initial testing with `BATCH_SIZE=5` and `BASE_FEATURES=64` (or even 32) resulted in `OutOfMemoryError` on an 8GB GPU. Instead of downsampling the data (which loses resolution), the model itself was made "slimmer" by setting **`BASE_FEATURES=16`** and **`BATCH_SIZE=1`** in `train.py`. This significantly reduced the model's memory footprint and allowed training to complete on the full-resolution data.
+
+* **Normalization Choice:** The `ImprovedUNet3D` uses **`InstanceNorm3d`**. This was a vital change from the baseline's `BatchNorm3d`. `BatchNorm3d` fails to compute meaningful statistics with `BATCH_SIZE=1`, while `InstanceNorm3d` is independent of the batch size and is standard practice for modern segmentation models.
+
+* **Loss Function:** A standard `nn.CrossEntropyLoss` was used. This is effective for multi-class segmentation.
+
+* **Evaluation Metric:** The primary metric is the **Dice Similarity Coefficient (DSC)**, as required by the project. The `dice_metric_per_class` function in `predict.py` calculates this score for each foreground class (1-5) and averages them.
+
+#### 5.2 Dataset
+**Pre-processing**
+The pre-processing pipeline in `dataset.py` is lightweight:
+1.  **Load Data:** `nibabel` is used to load the `.nii.gz` files.
+2.  **Type Conversion:** Image data is converted to `np.float32` and mask data to `np.int64`.
+3.  **Transpose:** The NIfTI volumes are loaded in `(W, H, D)` (Width, Height, Depth) format. They are transposed to `(C, D, H, W)` (Channel, Depth, Height, Width), which is the format PyTorch's `nn.Conv3d` expects.
+4.  **Batching:** A `DataLoader` handles batching (with `BATCH_SIZE=1` to fit on an 8GB GPU).
+
+**Data Split**
+The dataset of 211 volumes was split into:
+* **Training Set: 80% (168 volumes)**
+* **Validation Set: 20% (43 volumes)**
+
+This split was performed using `sklearn.model_selection.train_test_split`. An 80/20 split is a standard and robust ratio, providing a large dataset for the model to learn from while reserving a statistically significant portion for unbiased validation.
+
+**Reproducibility:** A `RANDOM_SEED=42` was used for the split, ensuring that the training and validation sets are identical every time the script is run, making the results fully reproducible.
+
+
 ### 6. Results
 
 ### 7. Future Work
