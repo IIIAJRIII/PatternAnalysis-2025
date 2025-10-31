@@ -57,7 +57,7 @@ Improved 3D UNet builds on this foundation. This implementation [3] integrates k
 
 ### 5. Implementation
 
-**DISCLAMIER:** These models were run on a GTX1080 8Gb, because of the limited memory the models and training were limited. To maximise performance on your setup adjust **`BATCH_SIZE`** and **`BASE_FEATURES`** in train.py accordingly.
+**DISCLAMIER:** These models were run on a GTX1080 8Gb, because of the limited memory the models and training were limited. To maximise performance on your setup, for more modern and powerful GPUs, adjust **`BATCH_SIZE`** and **`BASE_FEATURES`** in train.py accordingly.
 
 #### 5.1 Modules and Training
 Several key implementation details were critical to solving the task, particularly given the memory constraints of 3D data.
@@ -89,6 +89,34 @@ This split was performed using `sklearn.model_selection.train_test_split`. An 80
 
 
 ### 6. Results
+#### 6.1 Model Performance
+
+The "Improved 3D UNet" (with `base_features=16`) was trained for 50 epochs.
+
+The final model achieved an **Average Dice Score of 0.9069** on the 20% validation set (43 unseen volumes).
+The per-class performance was as follows:
+
+| Class | Average Dice Score |
+| :---: | :---: |
+| 1 | 0.9538 |
+| 2 | 0.9168 |
+| 3 | 0.8875 |
+| 4 | 0.8291 |
+| 5 | 0.9474 |
+
+This shows the model is extremely effective at segmenting Class 1 and Class 5, and performs very well on all other foreground classes.
+
+#### 6.2 Training History
+
+Initial experiments with the standard 3D UNet were used to establish the training pipeline, but detailed logs were not saved. Although the standard also had an average dice score in the low 0.9s. Training the standard model took approximately 28 hours for around 40 epochs. The final training run was conducted with the "Improved 3D UNet" due to its superior architecture. The training and validation loss, along with the validation Dice score, were plotted over 24 epochs.
+
+![Training vs Validation loss](readme_assets/train-vs-valid-loss.png)
+
+![Average Dice during testing](readme_assets/dice-during-testing.png)
+
+The graph is clearly shows a steady decrease in loss for both the training and testing test. From epochs 18 to 24, the testing loss is higher than the training loss, this shows the model is starting to overfit at this stage. Another important thing to note is, to train this model for 24 epochs it approximately took 19 hours. Showing the improved model is easier and faster to train whlist also producing result on par or greater than the standard UNet.
+
+![Result comparing raw MRI, ground truth mask and predicted mask](readme_assets/result.gif)
 
 ### 7. Future Work
 
