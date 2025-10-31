@@ -50,7 +50,7 @@ The project consists of the following files:
 * `train.py`: The main training script. It handles data splitting, model initialization (Standard or Improved), the training/validation loop, and saving the best-performing model based on validation Dice score.
 * `predict.py`: The evaluation and visualization script. It loads a trained model, runs it on the entire validation set to calculate the final average and per-class Dice scores, and then provides a 3D slice-by-slice visualization of a sample prediction.
 
-#### 3.1 Running code
+#### 3.1 Running Code
 
 You can run the project using the main scripts. Ensure your `images` folder (containing `semantic_MRs_anon` and `semantic_labels_anon`) is in the same directory.
 

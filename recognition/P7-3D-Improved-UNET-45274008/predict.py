@@ -154,7 +154,6 @@ def visualize_first_sample(model, val_loader, val_imgs, val_masks):
         
         # Plot Predicted Mask (D, H, W) -> get slice [i, :, :]
         # Squeeze to (H, W)
-        # REMOVED the extra .T to fix 90-degree rotation
         predicted_slice = predicted_mask_np[i, :, :]
         axes[2].imshow(predicted_slice, cmap='nipy_spectral', vmin=0, vmax=N_CLASSES-1, origin='lower')
         axes[2].set_title(f"Predicted Mask (Slice {i+1}/{num_slices})")
@@ -184,6 +183,7 @@ def evaluate_validation_set():
         print("Could not load validation data.")
         return
     
+    # Model selection via command line
     parser = argparse.ArgumentParser(description="Train 3D UNet on Prostate Dataset")
     parser.add_argument("-m", "--model", type=str, choices=["unet", "improved_unet"], default="improved_unet",
                         help="Choose the model to train: 'unet' or 'improved_unet'")
