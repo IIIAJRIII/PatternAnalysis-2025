@@ -5,6 +5,14 @@
 **Author: Alan Ravikumar - 45274008**
 
 ## Table of Contents
+1. [Overview](#1-overview)
+2. [Dependences](#2-dependences)
+3. [Project Structure](#3-project-structure)
+4. [Model and Data](#4-model-and-data)
+5. [Implementation](#5-implementation)
+6. [Results](#6-results)
+7. [Future Work](#7-future-work)
+8. [Reference](#8-reference)
 
 ### 1. Overview: Problem and Algorithm
 
@@ -119,6 +127,14 @@ The graph is clearly shows a steady decrease in loss for both the training and t
 ![Result comparing raw MRI, ground truth mask and predicted mask](readme_assets/result.gif)
 
 ### 7. Future Work
+For future work some topic and changes that can be explored are:
+
+* **Data Augmentation:** The project prompt mentions data augmentation. Implementing 3D-specific augmentations (e.g., random rotations, scaling, elastic deformations) in the `ProstateDataset` class would likely improve model generalization and could push the Dice score even higher.
+
+* **Dice Loss:** The model currently trains with `CrossEntropyLoss`. Adding a `DiceLoss` (or a combined `Dice + CE` loss) could directly optimize the metric that the model is being evaluated on, potentially improving results.
+
+* **Hyperparameter Tuning:** Further tuning of learning rate, optimizer, and `BASE_FEATURES`, especially, could yield performance gains.
+
 
 ### 8. References
 
