@@ -49,6 +49,7 @@ class Up(nn.Module):
             self.up = nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True)
             self.conv = DoubleConv(in_channels, out_channels, in_channels // 2)
         else:
+            # increase spatial resolution while decreasing feature resolution
             self.up = nn.ConvTranspose3d(in_channels, in_channels // 2, kernel_size=2, stride=2)
             self.conv = DoubleConv(in_channels, out_channels)
 
@@ -85,6 +86,7 @@ class UNet3D(nn.Module):
         self.n_classes = n_classes
         self.bilinear = bilinear
 
+        # Encoder path
         self.inc = DoubleConv(n_channels, base_features)
         self.down1 = Down(base_features, base_features * 2)
         self.down2 = Down(base_features * 2, base_features * 4)
@@ -116,7 +118,7 @@ class UNet3D(nn.Module):
 
 
 # ----------------------------------------------------------------------
-# --- Building Blocks for Improved 3D UNet (Hard Difficulty) ---
+# --- Building Blocks for Improved 3D UNet ---
 # --- Uses InstanceNorm, LeakyReLU, and Residual Connections ---
 # ----------------------------------------------------------------------
 

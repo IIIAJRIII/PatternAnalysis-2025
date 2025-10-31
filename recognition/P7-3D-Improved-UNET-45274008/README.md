@@ -81,6 +81,8 @@ Several key implementation details were critical to solving the task, particular
 
 * **Evaluation Metric:** The primary metric is the **Dice Similarity Coefficient (DSC)**, as required by the project. The `dice_metric_per_class` function in `predict.py` calculates this score for each foreground class (1-5) and averages them.
 
+* **Post-Activation Residual Blocks:** Due to time constraints pre-activation residual blocks were not implemented and opted to stay with post-activation version.
+
 #### 5.2 Dataset
 **Pre-processing**
 The pre-processing pipeline in `dataset.py` is lightweight:
@@ -137,6 +139,8 @@ For future work some topic and changes that can be explored are:
 * **Dice Loss:** The model currently trains with `CrossEntropyLoss`. Adding a `DiceLoss` (or a combined `Dice + CE` loss) could directly optimize the metric that the model is being evaluated on, potentially improving results.
 
 * **Hyperparameter Tuning:** Further tuning of learning rate, optimizer, and `BASE_FEATURES`, especially, could yield performance gains.
+
+* **Pre-Activation Residual Blocks:** Implement pre-activation residual blocks to follow the change in order of operations performed.
 
 * **Increased Dataset Size:** Training and testing on a larger dataset could increase performance even further.
 
